@@ -1,0 +1,4 @@
+rootProject.name = 'read-timeout-gw'
+
+include 'netty-server-core'
+include 'netty-server'

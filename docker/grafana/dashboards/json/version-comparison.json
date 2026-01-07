@@ -1,0 +1,319 @@
+{
+  "id": null,
+  "uid": "version-comparison",
+  "title": "Version Comparison - V1 ~ V5",
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "EventLoop Health",
+      "id": 100,
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "EventLoop Lag p95 (ms)",
+      "id": 101,
+      "gridPos": { "x": 0, "y": 1, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 10, "color": "yellow" }, { "value": 50, "color": "red" }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "V1 Blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "V2 Non-blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+          { "matcher": { "id": "byName", "options": "V3 Reactive Pool" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "V4 Reactive Sink" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "V5 Virtual Thread" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"blocking\"}[1m]))", "legendFormat": "V1 Blocking" },
+        { "refId": "B", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"non-blocking\"}[1m]))", "legendFormat": "V2 Non-blocking" },
+        { "refId": "C", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"reactive-pool\"}[1m]))", "legendFormat": "V3 Reactive Pool" },
+        { "refId": "D", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"reactive\"}[1m]))", "legendFormat": "V4 Reactive Sink" },
+        { "refId": "E", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"virtual\"}[1m]))", "legendFormat": "V5 Virtual Thread" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Pending Tasks",
+      "id": 102,
+      "gridPos": { "x": 12, "y": 1, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "V1 Blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "V2 Non-blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+          { "matcher": { "id": "byName", "options": "V3 Reactive Pool" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "V4 Reactive Sink" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "V5 Virtual Thread" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "sum(netty_eventloop_pending_tasks{mode=\"blocking\"})", "legendFormat": "V1 Blocking" },
+        { "refId": "B", "expr": "sum(netty_eventloop_pending_tasks{mode=\"non-blocking\"})", "legendFormat": "V2 Non-blocking" },
+        { "refId": "C", "expr": "sum(netty_eventloop_pending_tasks{mode=\"reactive-pool\"})", "legendFormat": "V3 Reactive Pool" },
+        { "refId": "D", "expr": "sum(netty_eventloop_pending_tasks{mode=\"reactive\"})", "legendFormat": "V4 Reactive Sink" },
+        { "refId": "E", "expr": "sum(netty_eventloop_pending_tasks{mode=\"virtual\"})", "legendFormat": "V5 Virtual Thread" }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Resource Usage",
+      "id": 200,
+      "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Heap Memory Used",
+      "id": 201,
+      "gridPos": { "x": 0, "y": 10, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "V1 Blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "V2 Non-blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+          { "matcher": { "id": "byName", "options": "V3 Reactive Pool" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "V4 Reactive Sink" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "V5 Virtual Thread" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "sum(jvm_memory_used_bytes{mode=\"blocking\", area=\"heap\"})", "legendFormat": "V1 Blocking" },
+        { "refId": "B", "expr": "sum(jvm_memory_used_bytes{mode=\"non-blocking\", area=\"heap\"})", "legendFormat": "V2 Non-blocking" },
+        { "refId": "C", "expr": "sum(jvm_memory_used_bytes{mode=\"reactive-pool\", area=\"heap\"})", "legendFormat": "V3 Reactive Pool" },
+        { "refId": "D", "expr": "sum(jvm_memory_used_bytes{mode=\"reactive\", area=\"heap\"})", "legendFormat": "V4 Reactive Sink" },
+        { "refId": "E", "expr": "sum(jvm_memory_used_bytes{mode=\"virtual\", area=\"heap\"})", "legendFormat": "V5 Virtual Thread" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU Usage",
+      "id": 202,
+      "gridPos": { "x": 12, "y": 10, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 20, "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "V1 Blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "V2 Non-blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+          { "matcher": { "id": "byName", "options": "V3 Reactive Pool" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "V4 Reactive Sink" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "V5 Virtual Thread" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "process_cpu_usage{mode=\"blocking\"}", "legendFormat": "V1 Blocking" },
+        { "refId": "B", "expr": "process_cpu_usage{mode=\"non-blocking\"}", "legendFormat": "V2 Non-blocking" },
+        { "refId": "C", "expr": "process_cpu_usage{mode=\"reactive-pool\"}", "legendFormat": "V3 Reactive Pool" },
+        { "refId": "D", "expr": "process_cpu_usage{mode=\"reactive\"}", "legendFormat": "V4 Reactive Sink" },
+        { "refId": "E", "expr": "process_cpu_usage{mode=\"virtual\"}", "legendFormat": "V5 Virtual Thread" }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "HTTP Requests",
+      "id": 300,
+      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Requests per Second",
+      "id": 301,
+      "gridPos": { "x": 0, "y": 19, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "V1 Blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "V2 Non-blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+          { "matcher": { "id": "byName", "options": "V3 Reactive Pool" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "V4 Reactive Sink" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "V5 Virtual Thread" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "rate(http_requests_total{mode=\"blocking\"}[1m])", "legendFormat": "V1 Blocking" },
+        { "refId": "B", "expr": "rate(http_requests_total{mode=\"non-blocking\"}[1m])", "legendFormat": "V2 Non-blocking" },
+        { "refId": "C", "expr": "rate(http_requests_total{mode=\"reactive-pool\"}[1m])", "legendFormat": "V3 Reactive Pool" },
+        { "refId": "D", "expr": "rate(http_requests_total{mode=\"reactive\"}[1m])", "legendFormat": "V4 Reactive Sink" },
+        { "refId": "E", "expr": "rate(http_requests_total{mode=\"virtual\"}[1m])", "legendFormat": "V5 Virtual Thread" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "RabbitMQ Publish Rate",
+      "id": 302,
+      "gridPos": { "x": 12, "y": 19, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "V1 Blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] },
+          { "matcher": { "id": "byName", "options": "V2 Non-blocking" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }] },
+          { "matcher": { "id": "byName", "options": "V3 Reactive Pool" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "V4 Reactive Sink" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "V5 Virtual Thread" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "purple" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "rate(rabbitmq_publish_total{mode=\"blocking\"}[1m])", "legendFormat": "V1 Blocking" },
+        { "refId": "B", "expr": "rate(rabbitmq_publish_total{mode=\"non-blocking\"}[1m])", "legendFormat": "V2 Non-blocking" },
+        { "refId": "C", "expr": "rate(rabbitmq_publish_total{mode=\"reactive-pool\"}[1m])", "legendFormat": "V3 Reactive Pool" },
+        { "refId": "D", "expr": "rate(rabbitmq_publish_total{mode=\"reactive\"}[1m])", "legendFormat": "V4 Reactive Sink" },
+        { "refId": "E", "expr": "rate(rabbitmq_publish_total{mode=\"virtual\"}[1m])", "legendFormat": "V5 Virtual Thread" }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Current Status",
+      "id": 400,
+      "gridPos": { "x": 0, "y": 27, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "stat",
+      "title": "Heap Memory",
+      "id": 401,
+      "gridPos": { "x": 0, "y": 28, "w": 5, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 536870912, "color": "yellow" }, { "value": 1073741824, "color": "red" }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value_and_name", "colorMode": "background" },
+      "targets": [
+        { "refId": "A", "expr": "sum(jvm_memory_used_bytes{mode=\"blocking\", area=\"heap\"})", "legendFormat": "V1" },
+        { "refId": "B", "expr": "sum(jvm_memory_used_bytes{mode=\"non-blocking\", area=\"heap\"})", "legendFormat": "V2" },
+        { "refId": "C", "expr": "sum(jvm_memory_used_bytes{mode=\"reactive-pool\", area=\"heap\"})", "legendFormat": "V3" },
+        { "refId": "D", "expr": "sum(jvm_memory_used_bytes{mode=\"reactive\", area=\"heap\"})", "legendFormat": "V4" },
+        { "refId": "E", "expr": "sum(jvm_memory_used_bytes{mode=\"virtual\", area=\"heap\"})", "legendFormat": "V5" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "EventLoop Lag (p95)",
+      "id": 402,
+      "gridPos": { "x": 5, "y": 28, "w": 5, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 10, "color": "yellow" }, { "value": 50, "color": "red" }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value_and_name", "colorMode": "background" },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"blocking\"}[1m]))", "legendFormat": "V1" },
+        { "refId": "B", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"non-blocking\"}[1m]))", "legendFormat": "V2" },
+        { "refId": "C", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"reactive-pool\"}[1m]))", "legendFormat": "V3" },
+        { "refId": "D", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"reactive\"}[1m]))", "legendFormat": "V4" },
+        { "refId": "E", "expr": "histogram_quantile(0.95, rate(netty_eventloop_lag_ms_bucket{mode=\"virtual\"}[1m]))", "legendFormat": "V5" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Pending Tasks",
+      "id": 403,
+      "gridPos": { "x": 10, "y": 28, "w": 5, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 50, "color": "yellow" }, { "value": 100, "color": "red" }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value_and_name", "colorMode": "background" },
+      "targets": [
+        { "refId": "A", "expr": "sum(netty_eventloop_pending_tasks{mode=\"blocking\"})", "legendFormat": "V1" },
+        { "refId": "B", "expr": "sum(netty_eventloop_pending_tasks{mode=\"non-blocking\"})", "legendFormat": "V2" },
+        { "refId": "C", "expr": "sum(netty_eventloop_pending_tasks{mode=\"reactive-pool\"})", "legendFormat": "V3" },
+        { "refId": "D", "expr": "sum(netty_eventloop_pending_tasks{mode=\"reactive\"})", "legendFormat": "V4" },
+        { "refId": "E", "expr": "sum(netty_eventloop_pending_tasks{mode=\"virtual\"})", "legendFormat": "V5" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "CPU Usage",
+      "id": 404,
+      "gridPos": { "x": 15, "y": 28, "w": 5, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.5, "color": "yellow" }, { "value": 0.8, "color": "red" }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value_and_name", "colorMode": "background" },
+      "targets": [
+        { "refId": "A", "expr": "process_cpu_usage{mode=\"blocking\"}", "legendFormat": "V1" },
+        { "refId": "B", "expr": "process_cpu_usage{mode=\"non-blocking\"}", "legendFormat": "V2" },
+        { "refId": "C", "expr": "process_cpu_usage{mode=\"reactive-pool\"}", "legendFormat": "V3" },
+        { "refId": "D", "expr": "process_cpu_usage{mode=\"reactive\"}", "legendFormat": "V4" },
+        { "refId": "E", "expr": "process_cpu_usage{mode=\"virtual\"}", "legendFormat": "V5" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Requests/sec",
+      "id": 405,
+      "gridPos": { "x": 20, "y": 28, "w": 4, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "blue" }] }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value_and_name", "colorMode": "background" },
+      "targets": [
+        { "refId": "A", "expr": "rate(http_requests_total{mode=\"blocking\"}[1m])", "legendFormat": "V1" },
+        { "refId": "B", "expr": "rate(http_requests_total{mode=\"non-blocking\"}[1m])", "legendFormat": "V2" },
+        { "refId": "C", "expr": "rate(http_requests_total{mode=\"reactive-pool\"}[1m])", "legendFormat": "V3" },
+        { "refId": "D", "expr": "rate(http_requests_total{mode=\"reactive\"}[1m])", "legendFormat": "V4" },
+        { "refId": "E", "expr": "rate(http_requests_total{mode=\"virtual\"}[1m])", "legendFormat": "V5" }
+      ]
+    }
+  ],
+  "time": { "from": "now-30m", "to": "now" },
+  "annotations": { "list": [] },
+  "templating": { "list": [] }
+}

@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    // Core module (Domain + Application Layer)
+    implementation project(':netty-server-core')
+
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // H2 Database + JPA (Blocking)
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+
+    // R2DBC (Reactive)
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    runtimeOnly 'io.r2dbc:r2dbc-h2'
+
+    // WebClient for external API simulation
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Netty (specific modules instead of netty-all to avoid native lib issues)
+    implementation 'io.netty:netty-handler:4.1.104.Final'
+    implementation 'io.netty:netty-codec-http:4.1.104.Final'
+
+    // RabbitMQ Client
+    implementation 'com.rabbitmq:amqp-client:5.20.0'
+    implementation 'org.springframework.amqp:spring-rabbit:3.1.0'
+
+    // Reactive RabbitMQ
+    implementation 'io.projectreactor.rabbitmq:reactor-rabbitmq:1.5.6'
+    implementation 'io.projectreactor:reactor-core:3.6.0'
+
+    // Micrometer + Prometheus
+    implementation 'io.micrometer:micrometer-core:1.12.0'
+    implementation 'io.micrometer:micrometer-registry-prometheus:1.12.0'
+
+    // Jackson (JSON) - Spring Boot provides this
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:testcontainers:1.19.3'
+    testImplementation 'org.testcontainers:rabbitmq:1.19.3'
+}
+
+// Spring Boot Application 설정
+springBoot {
+    mainClass = 'com.readtimeout.NettyServerApplication'
+}

@@ -1,0 +1,199 @@
+version: '3.8'
+
+# Infrastructure only - Netty servers run locally
+services:
+  # RabbitMQ Cluster Node 1 (Master)
+  rabbitmq-1:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq-1
+    hostname: rabbitmq-1
+    ports:
+      - "5672:5672"      # AMQP protocol
+      - "15672:15672"    # Management UI
+    environment:
+      TZ: Asia/Seoul
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_ERLANG_COOKIE: "secret-cookie-change-me"
+      RABBITMQ_NODENAME: rabbit@rabbitmq-1
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/setup-mirroring.sh:/usr/local/bin/setup-mirroring.sh:ro
+      - rabbitmq-1-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - read-timeout-net
+
+  # RabbitMQ Policy Setup (Classic Mirroring)
+  rabbitmq-setup:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq-setup
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+      rabbitmq-2:
+        condition: service_healthy
+      rabbitmq-3:
+        condition: service_healthy
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "secret-cookie-change-me"
+    volumes:
+      - ./rabbitmq/setup-mirroring.sh:/usr/local/bin/setup-mirroring.sh:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        # rabbitmq-1에 연결해서 policy 설정
+        export RABBITMQ_NODENAME=rabbit@rabbitmq-1
+        /usr/local/bin/setup-mirroring.sh
+    networks:
+      - read-timeout-net
+    restart: "no"
+
+  # RabbitMQ Cluster Node 2
+  rabbitmq-2:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq-2
+    hostname: rabbitmq-2
+    ports:
+      - "5673:5672"      # AMQP protocol (different port)
+      - "15673:15672"    # Management UI (different port)
+    environment:
+      TZ: Asia/Seoul
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_ERLANG_COOKIE: "secret-cookie-change-me"
+      RABBITMQ_NODENAME: rabbit@rabbitmq-2
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh:ro
+      - rabbitmq-2-data:/var/lib/rabbitmq
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "/usr/local/bin/cluster-entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - read-timeout-net
+
+  # RabbitMQ Cluster Node 3
+  rabbitmq-3:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq-3
+    hostname: rabbitmq-3
+    ports:
+      - "5674:5672"      # AMQP protocol (different port)
+      - "15674:15672"    # Management UI (different port)
+    environment:
+      TZ: Asia/Seoul
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_ERLANG_COOKIE: "secret-cookie-change-me"
+      RABBITMQ_NODENAME: rabbit@rabbitmq-3
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/cluster-entrypoint.sh:/usr/local/bin/cluster-entrypoint.sh:ro
+      - rabbitmq-3-data:/var/lib/rabbitmq
+    depends_on:
+      rabbitmq-1:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "/usr/local/bin/cluster-entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - read-timeout-net
+
+  # HAProxy Load Balancer
+  haproxy:
+    image: haproxy:2.9-alpine
+    container_name: rabbitmq-haproxy
+    ports:
+      - "5675:5672"      # AMQP via HAProxy
+      - "15675:15672"    # Management UI via HAProxy
+      - "8404:8404"      # HAProxy Stats
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    depends_on:
+      - rabbitmq-1
+      - rabbitmq-2
+      - rabbitmq-3
+    networks:
+      - read-timeout-net
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: read-timeout-prometheus
+    environment:
+      TZ: Asia/Seoul
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - read-timeout-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # InfluxDB (v1.8 for K6 compatibility)
+  influxdb:
+    image: influxdb:1.8
+    container_name: read-timeout-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      TZ: Asia/Seoul
+      INFLUXDB_DB: k6
+      INFLUXDB_HTTP_AUTH_ENABLED: "false"
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    networks:
+      - read-timeout-net
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: read-timeout-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      TZ: Asia/Seoul
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - influxdb
+    networks:
+      - read-timeout-net
+
+volumes:
+  rabbitmq-1-data:
+  rabbitmq-2-data:
+  rabbitmq-3-data:
+  prometheus-data:
+  influxdb-data:
+  grafana-data:
+
+networks:
+  read-timeout-net:
+    driver: bridge

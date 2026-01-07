@@ -1,0 +1,40 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.readtimeout'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    // 외부 프레임워크 의존 최소화 (Domain은 순수 Java)
+    // 단, Reactive 인터페이스 지원을 위해 reactor-core만 추가
+
+    // Reactor Core (Reactive Port 인터페이스용)
+    api 'io.projectreactor:reactor-core:3.6.0'
+
+    // Lombok (컴파일 타임만 필요)
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Validation API (Optional)
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+
+    // Logging
+    api 'org.slf4j:slf4j-api:2.0.9'
+
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'org.mockito:mockito-core:5.7.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}

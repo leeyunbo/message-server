@@ -1,0 +1,242 @@
+{
+  "id": null,
+  "uid": "io-latency",
+  "title": "I/O Latency Breakdown",
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "row",
+      "title": "I/O Duration Overview",
+      "id": 1,
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "External API Duration (p95)",
+      "id": 10,
+      "gridPos": { "x": 0, "y": 1, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 },
+          "color": { "mode": "fixed", "fixedColor": "orange" }
+        }
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(external_api_duration_seconds_bucket[1m])) by (le))", "legendFormat": "p95" },
+        { "refId": "B", "expr": "histogram_quantile(0.50, sum(rate(external_api_duration_seconds_bucket[1m])) by (le))", "legendFormat": "p50" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "DB Save Duration (p95)",
+      "id": 11,
+      "gridPos": { "x": 8, "y": 1, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 },
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        }
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(db_save_duration_seconds_bucket[1m])) by (le))", "legendFormat": "p95" },
+        { "refId": "B", "expr": "histogram_quantile(0.50, sum(rate(db_save_duration_seconds_bucket[1m])) by (le))", "legendFormat": "p50" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "RabbitMQ Publish Duration (p95)",
+      "id": 12,
+      "gridPos": { "x": 16, "y": 1, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 },
+          "color": { "mode": "fixed", "fixedColor": "green" }
+        }
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "histogram_quantile(0.95, sum(rate(rabbitmq_publish_latency_seconds_bucket[1m])) by (le))", "legendFormat": "p95" },
+        { "refId": "B", "expr": "histogram_quantile(0.50, sum(rate(rabbitmq_publish_latency_seconds_bucket[1m])) by (le))", "legendFormat": "p50" }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Average Duration",
+      "id": 2,
+      "gridPos": { "x": 0, "y": 9, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "stat",
+      "title": "External API Avg",
+      "id": 20,
+      "gridPos": { "x": 0, "y": 10, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 100, "color": "yellow" }, { "value": 500, "color": "red" }] }
+        }
+      },
+      "options": { "graphMode": "area", "colorMode": "value" },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(external_api_duration_seconds_sum[1m])) / sum(rate(external_api_duration_seconds_count[1m])) * 1000", "legendFormat": "avg" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "DB Save Avg",
+      "id": 21,
+      "gridPos": { "x": 6, "y": 10, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 50, "color": "yellow" }, { "value": 200, "color": "red" }] }
+        }
+      },
+      "options": { "graphMode": "area", "colorMode": "value" },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(db_save_duration_seconds_sum[1m])) / sum(rate(db_save_duration_seconds_count[1m])) * 1000", "legendFormat": "avg" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "RabbitMQ Publish Avg",
+      "id": 22,
+      "gridPos": { "x": 12, "y": 10, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 100, "color": "yellow" }, { "value": 500, "color": "red" }] }
+        }
+      },
+      "options": { "graphMode": "area", "colorMode": "value" },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(rabbitmq_publish_latency_seconds_sum[1m])) / sum(rate(rabbitmq_publish_latency_seconds_count[1m])) * 1000", "legendFormat": "avg" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total I/O Avg",
+      "id": 23,
+      "gridPos": { "x": 18, "y": 10, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 200, "color": "yellow" }, { "value": 1000, "color": "red" }] }
+        }
+      },
+      "options": { "graphMode": "area", "colorMode": "value" },
+      "targets": [
+        { "refId": "A", "expr": "(sum(rate(external_api_duration_seconds_sum[1m])) / sum(rate(external_api_duration_seconds_count[1m])) + sum(rate(db_save_duration_seconds_sum[1m])) / sum(rate(db_save_duration_seconds_count[1m])) + sum(rate(rabbitmq_publish_latency_seconds_sum[1m])) / sum(rate(rabbitmq_publish_latency_seconds_count[1m]))) * 1000", "legendFormat": "total" }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Request Rate",
+      "id": 3,
+      "gridPos": { "x": 0, "y": 14, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Operations per Second",
+      "id": 30,
+      "gridPos": { "x": 0, "y": 15, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max", "lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(external_api_duration_seconds_count[1m]))", "legendFormat": "External API" },
+        { "refId": "B", "expr": "sum(rate(db_save_duration_seconds_count[1m]))", "legendFormat": "DB Save" },
+        { "refId": "C", "expr": "sum(rate(rabbitmq_publish_latency_seconds_count[1m]))", "legendFormat": "RabbitMQ Publish" }
+      ]
+    },
+    {
+      "type": "piechart",
+      "title": "I/O Time Distribution",
+      "id": 31,
+      "gridPos": { "x": 12, "y": 15, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      },
+      "options": { "legend": { "displayMode": "table", "placement": "right", "values": ["percent", "value"] }, "pieType": "pie" },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(external_api_duration_seconds_sum[5m])) / sum(rate(external_api_duration_seconds_count[5m])) * 1000", "legendFormat": "External API" },
+        { "refId": "B", "expr": "sum(rate(db_save_duration_seconds_sum[5m])) / sum(rate(db_save_duration_seconds_count[5m])) * 1000", "legendFormat": "DB Save" },
+        { "refId": "C", "expr": "sum(rate(rabbitmq_publish_latency_seconds_sum[5m])) / sum(rate(rabbitmq_publish_latency_seconds_count[5m])) * 1000", "legendFormat": "RabbitMQ" }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Thread Pool",
+      "id": 4,
+      "gridPos": { "x": 0, "y": 23, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "type": "timeseries",
+      "title": "Concurrency Limiter Available Permits",
+      "id": 40,
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": { "fillOpacity": 20, "lineWidth": 2 },
+          "color": { "mode": "fixed", "fixedColor": "purple" }
+        }
+      },
+      "targets": [
+        { "refId": "A", "expr": "async_available_permits", "legendFormat": "Available" }
+      ]
+    },
+    {
+      "type": "gauge",
+      "title": "Concurrency Usage %",
+      "id": 41,
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 70, "color": "yellow" }, { "value": 90, "color": "red" }] }
+        }
+      },
+      "targets": [
+        { "refId": "A", "expr": "(1 - async_available_permits / 15000) * 100", "legendFormat": "Usage" }
+      ]
+    }
+  ]
+}

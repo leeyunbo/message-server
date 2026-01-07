@@ -1,0 +1,81 @@
+spring:
+  application:
+    name: netty-server
+  profiles:
+    active: dev,blocking-db
+    group:
+      blocking-mode: blocking-db
+      reactive-mode: reactive-db
+  main:
+    allow-circular-references: true
+    web-application-type: none
+  rabbitmq:
+    listener:
+      simple:
+        acknowledge-mode: auto
+        prefetch: 250
+
+# External API simulation
+external-api:
+  delay-ms: 50
+
+# blocking: 동기 블로킹 방식 (V1)
+# non-blocking: 비동기 방식 (V2)
+# reactive: Reactive RabbitMQ (V3)
+# reactive-pool: Reactive RabbitMQ with Thread Pool (V3)
+# virtual-thread: 가상 스레드 방식 (V4)
+server:
+  mode: blocking
+
+# RabbitMQ Thread Pool 설정 (non-blocking 모드용)
+rabbitmq:
+  thread-pool:
+    core-size: 200
+    max-size: 400
+    queue-capacity: 15000
+    keep-alive-seconds: 60
+  backpressure:
+    enabled: true
+    threshold-percentage: 0.8
+  metrics:
+    high-latency-threshold-ms: 5
+
+# Consumer 설정 (V1-V5 공통)
+consumer:
+  enabled: true
+  concurrency: 10
+  prefetch-count: 250
+
+---
+# Development Profile
+spring.config.activate.on-profile: dev
+
+netty:
+  http-port: 8081
+  boss-threads: 1
+  worker-threads: 0
+  so-backlog: 8192
+  keep-alive: true
+  max-content-length: 1048576
+
+rabbitmq:
+  host: localhost
+  port: 5672
+  username: admin
+  password: admin
+  virtual-host: /
+  exchange: readtimeout.exchange
+  routing-key: readtimeout.routing
+  queue-name: readtimeout.messages
+  publisher-confirms: true
+  publisher-returns: true
+  confirm-timeout-ms: 30000
+
+prometheus:
+  port: 9091
+  path: /metrics
+
+logging:
+  level:
+    com.readtimeout: INFO
+    io.netty: INFO
